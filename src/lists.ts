@@ -1,4 +1,4 @@
-import { BasicList, ListAction, ListContext, ListItem, Neovim, window, Uri, workspace } from 'coc.nvim';
+import { BasicList, ListAction, ListContext, ListItem, Neovim, window, Uri, workspace, Position } from 'coc.nvim';
 // import colors from 'colors/safe'
 import { exec, ChildProcess } from 'child_process'
 
@@ -15,9 +15,10 @@ export default class DemoList extends BasicList {
     let jumpCommand = preferences.get<string>('jumpCommand', 'open')
 
     this.addAction('open', async (item: ListItem) => {
-      window.showMessage(`${item.label}, ${item.data.name}`);
-      let fullpath = item.data.location;
-      await workspace.jumpTo(Uri.file(fullpath).toString(), null, jumpCommand);
+      // window.showMessage(`${item.label}, ${item.data.name}`);
+      let uri = item.data.location.uri;
+      let position = Position.create(item.data.line, item.data.character)
+      await workspace.jumpTo(uri, position, jumpCommand);
     });
   }
 
@@ -35,10 +36,20 @@ export default class DemoList extends BasicList {
     for (const json of jsons) {
       const obj = JSON.parse(json)
       if (obj.type === 'match') {
+        const uri = Uri.file(obj.data.path.text).toString()
         result.push({
           label: `${obj.data.path.text} |${obj.data.line_number}| ${obj.data.lines.text}`,
           data: {
-            location: obj.data.path.text
+            location: {
+              uri,
+              line: obj.data.line_number,
+              character: obj.data.lines.text.indexOf(keyWord)
+            }
+          },
+          location: {
+            uri,
+            line: obj.data.lines.text,
+            text: keyWord
           }
         });
       }

@@ -1,6 +1,9 @@
 import { commands, CompleteResult, ExtensionContext, listManager, sources, window, workspace } from 'coc.nvim';
 import DemoList from './lists';
 
+// https://www.mankier.com/1/rg#--count-matches
+// https://stackoverflow.com/questions/46756523/child-process-spawn-doesnt-emit-any-events
+
 export async function activate(context: ExtensionContext): Promise<void> {
   window.showMessage(`coc-finder works!`);
 

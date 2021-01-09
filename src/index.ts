@@ -5,8 +5,9 @@ export async function activate(context: ExtensionContext): Promise<void> {
   window.showMessage(`coc-finder works!`);
 
   context.subscriptions.push(
-    commands.registerCommand('coc-finder.Command', async () => {
+    commands.registerCommand('coc-finder.Command', async (...args: any[]) => {
       window.showMessage(`coc-finder Commands works!`);
+      workspace.nvim.command('CocList demo_list ' + args.join(' '))
     }),
 
     listManager.registerList(new DemoList(workspace.nvim)),

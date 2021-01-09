@@ -59,5 +59,9 @@
         "title": "coc-finder command title"
       }
     ]
+  },
+  "dependencies": {
+    "colors": "^1.4.0",
+    "ripgrep-js": "^1.1.0"
   }
 }

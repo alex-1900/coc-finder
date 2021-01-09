@@ -1,4 +1,6 @@
 import { BasicList, ListAction, ListContext, ListItem, Neovim, window, Uri, workspace } from 'coc.nvim';
+// import colors from 'colors/safe'
+import { exec, ChildProcess } from 'child_process'
 
 export default class DemoList extends BasicList {
   public readonly name = 'demo_list';
@@ -20,19 +22,53 @@ export default class DemoList extends BasicList {
   }
 
   public async loadItems(context: ListContext): Promise<ListItem[]> {
-    return [
-      {
-        label: 'coc-finder list item 1',
-        data: {
-            location: 'C:\\Users\\admin\\ppData\\Local\\nvim\\autoload\\materia\\common\\options.vim'
-        },
-      },
-      {
-        label: 'coc-finder list item 2',
-        data: {
-          location: 'C:\\Users\\admin\\ppData\\Local\\nvim\\autoload\\materia\\common\\commands.vim'
-        },
-      },
-    ];
+    const { args } = context
+    if (args.length === 0) {
+      return [];
+    }
+
+    const keyWord: string = args[0];
+    const result: ListItem[] = [];
+    // const reg: RegExp = new RegExp(keyWord)
+    let jsons = await runCommand(`rg --json --with-filename --column --line-number --color never -F ${keyWord} F:\\dev\\time_difference_deployment`);
+    // const jsons = content.replace(/\n$/, '').split('\n')
+    for (const json of jsons) {
+      const obj = JSON.parse(json)
+      if (obj.type === 'match') {
+        result.push({
+          label: `${obj.data.path.text} |${obj.data.line_number}| ${obj.data.lines.text}`,
+          data: {
+            location: obj.data.path.text
+          }
+        });
+      }
+    }
+    return result;
   }
+}
+
+function runCommand(cmd: string, timeout?: number): Promise<any> {
+  return new Promise<any>((resolve, reject) => {
+    if (timeout) {
+      setTimeout(() => {
+        reject(new Error(`timeout after ${timeout}s`))
+      }, timeout * 1000)
+    }
+    const childProcess: ChildProcess = exec(cmd)
+    const result: Array<string> = []
+    if (childProcess.stdout) {
+      childProcess.stdout.on('data', content => {
+        const jsons = content.replace(/\n$/, '').split('\n')
+        for (const json of jsons) {
+          result.push(json)
+        }
+      });
+      
+      childProcess.on('close', () => {
+        resolve(result)
+      })
+    } else {
+      resolve('')
+    }
+  })
 }
